@@ -93,14 +93,14 @@
 <meta name="description" content="概述java.util.Collection是Java集合类的基本接口，存储和操作一组类型相同的对象。而ArrayList是java语言最常用的集合类，是表ADT的一种实现。 ArrayList继承树  实现速览一下ArrayList的源码，详细介绍一下常用的方法。 属性1234567891011121314/*** The array buffer into which the elements">
 <meta name="keywords" content="java">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Java8 ArrayList 源码阅读笔记">
+<meta property="og:title" content="Java8 ArrayList 学习笔记">
 <meta property="og:url" content="http://yoursite.com/2017/03/23/ArrayList/index.html">
 <meta property="og:site_name" content="Jiahui&#39;s Blog">
 <meta property="og:description" content="概述java.util.Collection是Java集合类的基本接口，存储和操作一组类型相同的对象。而ArrayList是java语言最常用的集合类，是表ADT的一种实现。 ArrayList继承树  实现速览一下ArrayList的源码，详细介绍一下常用的方法。 属性1234567891011121314/*** The array buffer into which the elements">
 <meta property="og:image" content="http://i.imgur.com/uQcnPPr.png">
-<meta property="og:updated_time" content="2017-04-10T05:14:53.000Z">
+<meta property="og:updated_time" content="2017-05-07T16:00:00.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Java8 ArrayList 源码阅读笔记">
+<meta name="twitter:title" content="Java8 ArrayList 学习笔记">
 <meta name="twitter:description" content="概述java.util.Collection是Java集合类的基本接口，存储和操作一组类型相同的对象。而ArrayList是java语言最常用的集合类，是表ADT的一种实现。 ArrayList继承树  实现速览一下ArrayList的源码，详细介绍一下常用的方法。 属性1234567891011121314/*** The array buffer into which the elements">
 <meta name="twitter:image" content="http://i.imgur.com/uQcnPPr.png">
 
@@ -136,7 +136,7 @@
 
 
 
-  <title>Java8 ArrayList 源码阅读笔记 | Jiahui's Blog</title>
+  <title>Java8 ArrayList 学习笔记 | Jiahui's Blog</title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -272,7 +272,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">Java8 ArrayList 源码阅读笔记</h1>
+          <h1 class="post-title" itemprop="name headline">Java8 ArrayList 学习笔记</h1>
         
 
         <div class="post-meta">
@@ -348,6 +348,14 @@
 <h2 id="Spliterator"><a href="#Spliterator" class="headerlink" title="Spliterator"></a>Spliterator</h2><p>// TODO<br>java8新特性，有待研究，之后补上</p>
 <h1 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h1><p>ArrayList提供了List ADT的一种可增长数组的实现，使用ArrayList的优点在于，对get和set调用花费常数时间。其缺点是新项的插入和现有项的删除代价昂贵，除非变动是在ArrayList的末端进行。</p>
 <p>适合需要快速访问数据，较少插入或删除元素的场景。</p>
+<h1 id="变种"><a href="#变种" class="headerlink" title="变种"></a>变种</h1><p>concurrent包下提供了CopyOnWriteArrayList</p>
+<blockquote>
+<p>写入时复制（英语：Copy-on-write，简称COW）是一种计算机程序设计领域的优化策略。其核心思想是，如果有多个调用者（callers）同时要求相同资源（如内存或磁盘上的数据存储），他们会共同获取相同的指针指向相同的资源，直到某个调用者试图修改资源的内容时，系统才会真正复制一份专用副本（private copy）给该调用者，而其他调用者所见到的最初的资源仍然保持不变。这过程对其他的调用者都是透明的（transparently）。此作法主要的优点是如果调用者没有修改该资源，就不会有副本（private copy）被创建，因此多个调用者只是读取操作时可以共享同一份资源。</p>
+</blockquote>
+<p>以下代码是向ArrayList里添加元素，可以发现在add方法中是需要加锁的<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">add</span><span class="params">(E e)</span> </span>&#123;</div><div class="line">    <span class="keyword">final</span> ReentrantLock lock = <span class="keyword">this</span>.lock;</div><div class="line">    lock.lock();</div><div class="line">    <span class="keyword">try</span> &#123;</div><div class="line">        Object[] elements = getArray();</div><div class="line">        <span class="keyword">int</span> len = elements.length;</div><div class="line">        Object[] newElements = Arrays.copyOf(elements, len + <span class="number">1</span>);</div><div class="line">        newElements[len] = e;</div><div class="line">        setArray(newElements);</div><div class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">    &#125; <span class="keyword">finally</span> &#123;</div><div class="line">        lock.unlock();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>get方法则无需加锁<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> E <span class="title">get</span><span class="params">(<span class="keyword">int</span> index)</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> get(getArray(), index);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">private</span> E <span class="title">get</span><span class="params">(Object[] a, <span class="keyword">int</span> index)</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> (E) a[index];</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>当线程A执行修改操作，修改的是copy出来的新数组，其它读线程此时读取的任是原数组。</p>
+<p>那么问题来了，修改操作会锁住整个List，是一个并发瓶颈；频繁的copy则会导致内存和gc相关的问题。CopyOnWriteArrayList不是一个通用的并发List，适合读多写少的场景。</p>
 
       
     </div>
@@ -522,7 +530,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#概述"><span class="nav-number">1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#实现"><span class="nav-number">2.</span> <span class="nav-text">实现</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#属性"><span class="nav-number">2.1.</span> <span class="nav-text">属性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#get-amp-set"><span class="nav-number">2.2.</span> <span class="nav-text">get&set</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#add"><span class="nav-number">2.3.</span> <span class="nav-text">add</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#remove"><span class="nav-number">2.4.</span> <span class="nav-text">remove</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#iterator"><span class="nav-number">2.5.</span> <span class="nav-text">iterator</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#fail-fast"><span class="nav-number">2.6.</span> <span class="nav-text">fail-fast</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RandomAccess"><span class="nav-number">2.7.</span> <span class="nav-text">RandomAccess</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Spliterator"><span class="nav-number">2.8.</span> <span class="nav-text">Spliterator</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#小结"><span class="nav-number">3.</span> <span class="nav-text">小结</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#概述"><span class="nav-number">1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#实现"><span class="nav-number">2.</span> <span class="nav-text">实现</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#属性"><span class="nav-number">2.1.</span> <span class="nav-text">属性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#get-amp-set"><span class="nav-number">2.2.</span> <span class="nav-text">get&set</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#add"><span class="nav-number">2.3.</span> <span class="nav-text">add</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#remove"><span class="nav-number">2.4.</span> <span class="nav-text">remove</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#iterator"><span class="nav-number">2.5.</span> <span class="nav-text">iterator</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#fail-fast"><span class="nav-number">2.6.</span> <span class="nav-text">fail-fast</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RandomAccess"><span class="nav-number">2.7.</span> <span class="nav-text">RandomAccess</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Spliterator"><span class="nav-number">2.8.</span> <span class="nav-text">Spliterator</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#小结"><span class="nav-number">3.</span> <span class="nav-text">小结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#变种"><span class="nav-number">4.</span> <span class="nav-text">变种</span></a></li></ol></div>
             
 
           </div>
