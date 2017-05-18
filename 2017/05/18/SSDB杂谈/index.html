@@ -90,17 +90,17 @@
 
 
 
-<meta name="description" content="前言没读过SSDB的源码，也没读过LevelDB，但好歹也是用了很久的工具，就算没用好没用到位也有必要总结一下，说不定以后用不到。。。 先了解一下leveldb的原理别人整理的blog，记得当时我还看过郎格科技的原文，如今已无法访问，世事无常啊。 SSDB在LevelDB的基础上提供了网络支持，各种语言客户端api，封装了一些数据结构。 以下只谈使用不谈原理。 特点 耗CPU不耗内存 天生单节点，">
+<meta name="description" content="前言没读过SSDB的源码，也没读过LevelDB，但好歹也是用了很久的工具，就算没用好没用到位也有必要总结一下，说不定以后用不到了。。。 先了解一下leveldb的原理别人整理的blog，记得当时我还看过郎格科技的原文，如今已无法访问，世事无常啊。 SSDB在LevelDB的基础上提供了网络支持，各种语言客户端api，封装了一些数据结构。 以下只谈使用不谈原理。 特点 耗CPU不耗内存 天生单节点">
 <meta name="keywords" content="ssdb">
 <meta property="og:type" content="article">
 <meta property="og:title" content="SSDB杂谈">
 <meta property="og:url" content="http://yoursite.com/2017/05/18/SSDB杂谈/index.html">
 <meta property="og:site_name" content="Jiahui&#39;s Blog">
-<meta property="og:description" content="前言没读过SSDB的源码，也没读过LevelDB，但好歹也是用了很久的工具，就算没用好没用到位也有必要总结一下，说不定以后用不到。。。 先了解一下leveldb的原理别人整理的blog，记得当时我还看过郎格科技的原文，如今已无法访问，世事无常啊。 SSDB在LevelDB的基础上提供了网络支持，各种语言客户端api，封装了一些数据结构。 以下只谈使用不谈原理。 特点 耗CPU不耗内存 天生单节点，">
+<meta property="og:description" content="前言没读过SSDB的源码，也没读过LevelDB，但好歹也是用了很久的工具，就算没用好没用到位也有必要总结一下，说不定以后用不到了。。。 先了解一下leveldb的原理别人整理的blog，记得当时我还看过郎格科技的原文，如今已无法访问，世事无常啊。 SSDB在LevelDB的基础上提供了网络支持，各种语言客户端api，封装了一些数据结构。 以下只谈使用不谈原理。 特点 耗CPU不耗内存 天生单节点">
 <meta property="og:updated_time" content="2017-05-17T16:00:00.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="SSDB杂谈">
-<meta name="twitter:description" content="前言没读过SSDB的源码，也没读过LevelDB，但好歹也是用了很久的工具，就算没用好没用到位也有必要总结一下，说不定以后用不到。。。 先了解一下leveldb的原理别人整理的blog，记得当时我还看过郎格科技的原文，如今已无法访问，世事无常啊。 SSDB在LevelDB的基础上提供了网络支持，各种语言客户端api，封装了一些数据结构。 以下只谈使用不谈原理。 特点 耗CPU不耗内存 天生单节点，">
+<meta name="twitter:description" content="前言没读过SSDB的源码，也没读过LevelDB，但好歹也是用了很久的工具，就算没用好没用到位也有必要总结一下，说不定以后用不到了。。。 先了解一下leveldb的原理别人整理的blog，记得当时我还看过郎格科技的原文，如今已无法访问，世事无常啊。 SSDB在LevelDB的基础上提供了网络支持，各种语言客户端api，封装了一些数据结构。 以下只谈使用不谈原理。 特点 耗CPU不耗内存 天生单节点">
 
 
 
@@ -317,7 +317,7 @@
       
 
       
-        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>没读过SSDB的源码，也没读过LevelDB，但好歹也是用了很久的工具，就算没用好没用到位也有必要总结一下，说不定以后用不到。。。</p>
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>没读过SSDB的源码，也没读过LevelDB，但好歹也是用了很久的工具，就算没用好没用到位也有必要总结一下，说不定以后用不到了。。。</p>
 <p>先了解一下leveldb的原理<a href="http://www.cnblogs.com/haippy/archive/2011/12/04/2276064.html" target="_blank" rel="external">别人整理的blog</a>，记得当时我还看过郎格科技的原文，如今已无法访问，世事无常啊。</p>
 <p>SSDB在LevelDB的基础上提供了网络支持，各种语言客户端api，封装了一些数据结构。</p>
 <p>以下只谈使用不谈原理。</p>
@@ -330,7 +330,7 @@
 <li>单单从api角度来看，功能对比redis单薄很多</li>
 <li>单节点的写操作只会影响CPU一个核的使用</li>
 </ul>
-<h1 id="使用场景"><a href="#使用场景" class="headerlink" title="使用场景"></a>使用场景</h1><p>举两个例子，公司生产中用到的</p>
+<h1 id="使用场景"><a href="#使用场景" class="headerlink" title="使用场景"></a>使用场景</h1><p>举两个例子，公司生产中用到的，都是当持久化数据库而非缓存使用。</p>
 <ol>
 <li><p>使用的数据结构为kv（只有kv支持过期机制），配置了双主（为了容错），数据量不大，用得还行。但项目开始时由于没有控制数据量，因为删除动作（过期）相当于写入，影响到了实际数据写入效率。得出结论：得分多个节点，充分利用cpu；慎用过期/删除。</p>
 </li>
